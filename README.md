@@ -43,7 +43,6 @@ This is
 | `waitlisted`          | int |
 | `name`        | string |
 
-<PlaceHolder for the Graph>
 
 ###  Rationale for Design Decisions
 
