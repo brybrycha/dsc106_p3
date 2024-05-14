@@ -1,308 +1,110 @@
-# Impact of Number of Nutritions
+# SP24 MGT Course Waitlist Statistics at UC San Diego
 
-This data science study examines the relationship between calories of the recipe and their corresponding number of ingredients. This is a project for DSC 80 at UC San Diego.
+This data visualization helps UCSD students to examine the popularity and competitiveness of each management course.
 
 *By Bryan Cha & Chloe Kim*
 
 ## Project Introduction
 
-In the constantly-evolving world of gastronomy, where the combination of culinary art and science is more pronounced than ever, understanding the nutritional aspects of what we eat has become essential. This project explores a fascinating area of culinary analytics: the relationship between the number of ingredients and carolies in a recipe. 
-
-The central question of our analysis is: **Is there a relationship between the number of ingredients a recipe requires and its calorie content?** This question is not just of academic interest but of practical significance in our daily lives.
-
+For Business Economics major and minor students (like Bryan and Chloe), there are several management courses that the students are required to take: MGT16, MGT71, MGT12, MGT137, and MGT112. As there is no prerequisite course to take the five management courses, it is always a struggle for the students to decide when to enroll in the courses.
+ There are two choices that the students can make. They can either enroll in 2 courses in the first pass or enroll in the second pass. As first pass increases the chance of getting into the class without getting waitlisted, students usually enroll in popular classes in firstpass. Without knowing the popularity of each course, it is hard to decide when to enroll in each course.
+Bryan and Chloe thought distributing line graphs of management courses’ waitlist count records once every few days would give students a great insight into which courses out of 5 management courses are popular and which are not. Based on the trend of waitlist counts for each management course, it would give a great idea of which courses should be enrolled during first pass and second pass.
 
 ### Datasets Used in the project
 
-We based our analysis on two comprehensive datasets.
 
-The first dataset contains information of a variety of recipes that have been posted on food.com since 2008. This dataset contains 83782 unique recipes with `name` as its index column and 11 other columns conveying the following information:
-
-| Column          | Description   |
-|-----------------|---------------|
-| `name`          | Recipe name   |
-| `id`            | Recipe ID     |
-| `minutes`       | Minutes to prepare recipe |
-| `contributor_id`| User ID who submitted this recipe |
-| `submitted`     | Date recipe was submitted |
-| `tags`          | Food.com tags for recipe |
-| `nutrition`     | Nutrition information in the form [calories (#), total fat (PDV), sugar (PDV), sodium (PDV), protein (PDV), saturated fat (PDV), carbohydrates (PDV)]; PDV stands for “percentage of daily value” |
-| `n_steps`       | Number of steps in recipe |
-| `steps`         | Text for recipe steps, in order |
-| `description`   | User-provided description |
-| `ingredients`   | List of ingredients requried for the recipe |
-| `n_ingredients` | Number of ingredients required for the recipe |
-
-
-The second dataset contains information of reviews and ratings submitted for the recipes through food.com, which conveys 731927 reviews with `user_id` as its index column and 4 other columns conveying the following information:
+Source: https://github.com/UCSD-Historical-Enrollment-Data
 
 | Column          | Description   |
 |-----------------|---------------|
-| `user_id`       | User ID       |
-| `recipe_id`     | Recipe ID     |
-| `date`          | Date of interaction |
-| `rating`        | Rating given  |
-| `review`        | Review text   |
+| `time`       | date when the enrollment data was recorded      |
+| `enrolled`       | enrolled students number       |
+| `available`     | available seats number     |
+| `waitlisted`          | waitlisted students number |
+| `total`        | Total offered seats number |
 
-In our project, we mainly used `n_ingredients` column and `calories` column that we added to our dataset by extracting calories information from `nutrition` column. We also inspected `rating`, `review`, and `minutes` columns to examine missingness of certain values. 
+We brought the data from UCSD-Enrollment-Data in github, and we confirmed the MIT license before using the data. We used enrollment data of MGT16, MGT71, MGT12, MGT137, and MGT112 from Spring quarter 2023-2024
 
 ---
 ## Data Cleaning and EDA
 
-The data that are using two different datasets: recipe, interaction
+We concatenated enrollment history data of each course into one dataset and made a new column of course name. We used the new column of each course name to make 5 different line graphs using D3. As we are only using waitlisted number data, we deleted all the columns other than time, waitlisted, and name columns
 
 > Checking Data Types
 
 Let's look into their columns and datatypes.
 
-This is recipe data.
+This is 
 
 
 | Column name     | Type          |
 |-----------------|---------------|
-| `name`          | object        |
-| `id`            | int64         |
-| `minutes`       | int64         |
-| `contributor_id`| int64         |
-| `submitted`     | object        |
-| `tags`          | object        |
-| `nutrition`     | object        |
-| `n_steps`       | int64         |
-| `steps`         | object        |
-| `description`   | object        |
-| `ingredients`   | object        |
-| `n_ingredients` | int64         |
+| `time`       | date     |
+| `waitlisted`          | int |
+| `name`        | string |
 
-and this is interaction(rating) data
+<PlaceHolder for the Graph>
 
-| Column name     | Type          |
-|-----------------|---------------|
-| `user_id`       | int64         |
-| `recipe_id`     | int64         |
-| `date`          | object        |
-| `rating`        | int64         |
-| `review`        | object        |
+###  Rationale for Design Decisions
 
-> Merging Two Datasets
+We decided to use line graphs in order to depict the trend of each course’s waitlist counts. Line graph is the most common type of chart to show the trends of increasing and decreasing over time. Along the line graph we used x-axis to show dates in spring quarter and y-axis to show the counts of waitlisted students from each course. We used D3 to depict the line graphs.
 
-For convenience purpose, The first step of cleaning is going to be merging the two data sets.
-Two datasets can be merged based on 'ID' from recipe and 'recipe_id' from interaction as they both share same recipe id. The merge will be conducted based on recipe data.
+Also, we implemented two different interactive functions: Zoom-in and out with pan function, and Search function
 
-> Replace Missing Value to np.NaN
+#### Zoom-in and out function with pan function
+The first function that we have implemented is the zoom-in and out function. It allows users to zoom in and out the visualization by scrolling on the graph, and they can also pan through the graph by moving the cursor. In order to implement the function, we implemented the d3.zoom() function. 
 
-There are some missing value in merged data (ex. rating) indicated as 0. The missing value has to be converted to np.NaN instead of 0 for future hypothesis and permutation testing as the testing would recognize the missing value if it is in np.NaN.
+##### How did you choose your particular visual encodings and interaction techniques?
 
-> Adding Column for Calories Only
+One possible inconvenience that users might experience is reading the data with a wide date scale on x-axis. Without zooming into the graph, the graph shows the waitlist counts data from February 18th to April 14th. Because the data visualization is depicting data within the 2 months and 7 days gap in between two grids on x-axis, it is hard to read the detailed data such as a data point of waitlist counts on a certain day. Also, it is hard to read the line graph solely with y-axis grids as the graphs contain so many changes within two months. Furthermore, it is fairly hard to read each line graph as there are five line graphs congregated in one data visualization With the zoom function that we implemented, now users can see the line graph with each point of waitlist counts with hours scale, and they can pan through the graph to find the certain date and time that users want to look at. Users can also pan through the line graph to read the point’s exact number as the y-axis scale gets smaller and accurate once users zoom in. It is way easier to read each line graph in data visualization as you can zoom into one specific line graph to look at. 
 
-As calories for each recipe is included in nutrition column, we isolated the calories and make separate column for it.
+##### What alternatives did you consider and how did you arrive at your ultimate choices?
 
-> Rating to Average Rating
+We thought about using a toolbox to describe each point’s number when you click into a certain point of one line graph. It would definitely make the visualization easier to look at, but it still would not solve problems of how it is hard to see the trend of waitlist counts of each line graph when 5 line graphs are congregated in one data visualization. Furthermore, the toolbox would be hard to use as it would take quite an effort to find the exact date on the graph that you are interested in looking at when the x-axis scale is big. It will take few trials to find the exact date on the graph. However, zoom in/out with pan function would solve all these cons while adding more pros into the visualization. 
 
-Another important information that we would need is rating mean per recipe. We made another columns for rating mean per recipe. As Average Rating still contains np.NaN, we will be able to do hypothesis and permutation testing based on the missingness for later.
 
-> Categorize Number of Ingredients
+#### Search function
 
-As the number of ingredients are dispersed and it would be easier to conduct permutation testing if it's categorized, we made another column for "low_number". If the n_ingredients is less than its median, it will say True and False for otherwise.
 
-> Log Transformation for Calories
+The second function that we have implemented is the search function. It allows you to search the courses that you are interested in the search box, and it will only show the line graph of courses that you searched for. You can also search for the first number of mgt courses, and it will show all the courses that start with a certain number after the letter “mgt” that you typed in. 
 
-Calories data are very skewed to right. In this case, it would be hard for us to get the accurate estimation for hypothesis and permutation testing. Therefore, we made another column for log(calories - minimum of calories) for each recipe.
+##### How did you choose your particular visual encodings and interaction techniques?
 
-> Clean Result
+Just like mgt16 line graphs and mgt 137 line graphs, there are several line graphs that intersect to each other. Due to the intersection with several graphs at the same time, it is hard for users to read the data especially when they want to look at specific points of each line graph when the x-axis scale is large. With the filter out function with search function, you can only look at line graphs that you are interested in, and you can hide all the other graphs that you are not interested in. Although each line graph is differentiated with different color of line, it is still hard to figure which line graph represents which course’s waitlist counts. With the search function, you can easily identify each line graph’s representation by simply typing an interested course’s name in the search bar.
 
-| Column name       | Type          |
-|-----------------  |---------------|
-| `name`            | object        |
-| `id`              | int64         |
-| `minutes`         | float64       |
-| `contributor_id`  | int64         |
-| `submitted`       | object        |
-| `tags`            | object        |
-| `nutrition`       | object        |
-| `n_steps`         | int64         |
-| `steps`           | object        |
-| `description`     | object        |
-| `ingredients`     | object        |
-| `n_ingredients`   | int64         |
-| `user_id`         | float64       |
-| `recipe_id`       | float64       |
-| `date`            | object        |
-| `rating`          | float64       |
-| `review`          | object        |
-| `rating_mean`     | float64       |
-| `calories`        | float64       |
-| `low_number`      | bool          |
-| `log_calories`    | float64       |
-| `rate_missingness`| bool          |
 
+##### What alternatives did you consider and how did you arrive at your ultimate choices?
 
-> Example
+We thought about having 5 different buttons that can filter out line graphs. For example, if you click a button with an mgt16 letter, the line graph will only show the mgt 16 waitlist line graph. However, this function will require 5 different buttons on the graph, and it will make the visualization distracting and messy. Furthermore, the search function allows users to filter out line graphs by typing common letters and numbers to see a few line graphs from courses with common letters and numbers. As I mentioned earlier, the search function adds another utility aspect where we can use the search function as identifying each line’s data representation. With more pros when we have search functions, we decided to add a search function for the data visualization.
 
-This is the example of 
-I took out only columns that are important 
+###  Overview of Development Process
 
-|     id | name                                 | n_ingredients | calories        | log_calories  | rating_missingness|
-|-------:|:-------------------------------------|--------------:|:----------------|--------------:|:------------------|
-| 333281 | 1 brownies in the world best ever    |        9      |            138.4|       4.937347| False             |
-| 453467 | 1 in canada chocolate chip cookies   |        11     |            595.1|       6.390408| False             |
-| 306168 | 412 broccoli casserole               |        9      |            194.8|       5.277094| False             |
-| 306168 | 412 broccoli casserole               |        9      |            194.8|       5.277094| False             |
-| 306168 | 412 broccoli casserole               |        9      |            194.8|       5.277094| False             |
-| 306168 | 412 broccoli casserole               |        9      |            194.8|       5.277094| False             |
 
 
----
+#### Describe how the work was split among the team members.
 
-### Exploratory Data Analysis
 
-### Univariate Analysis
+First day, we met up and discussed our ideas of how to make interactive visualization. We spent about 2-3 hours doing research and making a decision to make data visualization of waitlist counts in mgt courses with two different interactive functions.
 
-In the univariate analysis, we would analyze the distribution of number of ingredients and the distribution of calories
+We tried our best to split the work evenly. We started the project by researching and experimenting D3 functions. We watched videos such as:
+https://www.youtube.com/watch?v=T1RgT0Yh1Lg&t=1321s - instruction of how to make line graph with D3
+https://www.youtube.com/watch?v=ZNrG6sMNHeI&t=230s -  instruction of how to implement zoom function into data visualization.
 
-<iframe src='graph/distribution_n_ingredients.html' width=600 height=600 frameBorder=0></iframe>
+We also studied with Lab4 and Lab5 instructions that guided us through how to use D3 to make interactive data visualization.
 
-This is the distribution of number of ingredients. We can tell that the distribution is right skewed.
+https://d3js.org/d3-zoom -  we used d3 by observable website to implement zoom function and search function.
 
+We spent around 2 hours a day for 3 days researching and experimenting.
 
-<iframe src='graph/distribution_calories.html' width=1000 height=700 frameBorder=0></iframe>
+Bryan worked on Data cleaning and creating basic line graphs using cleaned data. Data cleaning took about an hour, and creating basic line graphs using D3 took about 4 hours.
 
-This is the distribution of calories. As there were outliers that make the graph to hard to interpret, I limited the calories to 20k so that people can see the distribution of majority. We can tell that the distribution of calories is also right skewed data.
+Chloe worked on implementing search functions and modifying details of visualization to make the data visualization better looking. Implementing search functions took about 3 hours, and modifying details of visualization took about an hour. 
 
+On May 13th, 2024, we had a last meeting to work on zoom in/zoom-out with pan function together. After implementing the function, we worked on write ups together. Implementing zoom in/zoom out function with pan function took about 5 hours. It required most of the time as there were lots to learn to use D3 zoom function, and the function kept creating the error. The most common error that we got was the zoom-in function working for only one time and not being able to zoom in and out again. Then, we worked on write up about an hour together.
 
-### Bivariate Analysis
 
-In Bivariate Analysis, we would analyze the correlation between calories and number of ingredients.
+Thank you
 
-<iframe src='graph/scatter.html' width=600 height=600 frameBorder=0></iframe>
 
-This is the scatter plots that explains the distribution between caloreis and number of ingredients. As dots are congreated near 10 ingredients and 10k calories. We can tell the distribution is right skewed but not as much as the scatter plots from univariate. Also, we can also see there are some outliers with extremely high calories.
 
-<iframe src='graph/box_plot.html' width=800 height=700 frameBorder=0></iframe>
 
-This is the box plots that explains the dispersion of calories between low number of ingredients and high number of ingredients (low number = lower than the median of number of ingredients and vice versa). As the box plot of high number of ingredients lower in calories than the lower number of ingredients, we can tell that calories tend to me lower in large number of ingredients. Furthermore, we can also tell that dispersion of two categories are not that different.
-
-
-### Interesting Aggregates
-
-|   rating |     False |      True |
-|---------:|----------:|----------:|
-|        1 | 0.0125714 | 0.0136221 |
-|        2 | 0.0112957 | 0.0102612 |
-|        3 | 0.0337719 | 0.031544  |
-|        4 | 0.173422  | 0.16647   |
-|        5 | 0.768939  | 0.778103  |
-
-I made the pivot table with proportion of recipes per each rating from 1 to 10. We can tell that low number of ingredients and higher number of ingredients have similar proportion for every rating. We can also tell that the total number of 5 rating is the highest number in total.
-
-This graphs also explains the description.
-
-<iframe src='graph/barr.html' width=900 height=700 frameBorder=0></iframe>
-
----
-## Assessment of Missingness
-This section of the study will examine missingness in certain columns on the combined dataset. 
-
-### NMAR Analysis
-
-In the study of missing data mechanisms, Not Missing At Random (NMAR) refers to a situation in which a data point's likelihood of being missing is directly related to its value itself, whether observed or not. This mechanism is particularly pertinent to the `review` column in our dataset, where it is possible to infer that a user's experience with the recipe is the explanation behind the absence of a review.
-
-Users are not as likely to submit reviews unless they have specific critiques or complaints about the recipe. A user's subjective experience often influences their decision to write a review; feedback is likely to be generated by particularly pleasant or negative experiences with the recipe. On the other hand, if an encounter does not leave an impression or elicit a strong response - possibly because the recipe is thought to be mediocre or unremarkable - may result in a lack of desire to write a review.
-
-This pattern suggests that the missingness of data in `review` column is potentially NMAR as the absence of a review may correlate with unobserved, experiential factors inherent to the recipe. Understanding this missingness mechanism is crucial to our research as it highlights the necessity for specialized statistical methods that can take into account any bias that may have been introduced by the NMAR data.
-
-
-### Missingness Dependency
-
-This section centers on examining the pattern of absent values in the `rating` column within our integrated dataset. The goal is to investigate if this missingness depends on specific recipe attributes - specifically, the calories contained in the dish and the amount of time spent in preparation. This inquiry is crucial as it could point to underlying patterns in the relationship between these recipe attributes and the completeness of rating data. 
-
-- To investigate this, we created a new column `rating_missingness` in which the value is `True` if rating is missing, `False` if rating is not missing. 
-
-
-#### 1. Rating and Calories
-
-**Null hypothesis**: The missingness of `rating` column does not depend on calories.
-
-**Alnernative hypothesis**: The missingness of `rating` column does depend on calories.
-
-**Test Statistics**: The absolute mean difference between two distributions of rating and calories.
-
-First, we constructed a plot that indicates distributions of calories with and without the presence of rating below.
-
-<iframe src='graph/fig_cal.html' width=600 height=600 frameBorder=0></iframe>
-
-Then, we performed a permutaion test by first calculating the observed test statistic - which is the absolute mean difference in `calories` between the group of recipes with ratings and the group without ratings. We got **69.007** as the observed test statistic. 
-
-We generated 1000 simulation results for each absolute difference by performing permutation testing to shuffle the missingness of rating 1000 times. 
-
-The empirical distribution of the absolute difference in calorie means over 1000 permutations is plotted below; our observed test statistic is indicated by the red line. 
-
-<iframe src='graph/fig_c.html' width=700 height=500 frameBorder=0></iframe>
-
-We calculated the p-value to be approximately **0.0**, which is less than the significance value we chose, 0.05. Therefore, we **reject the null hypothesis** that the missingness of `rating` column does not depend on calories. Since we can conclude that the missingness of `rating` **does** depend on calories, we can say that the missingness of `rating` is **MAR** as it depends another column which is `calories`.
-
-
----
-
-
-#### 2. Rating and Minutes
-
-**Null hypothesis**: The missingness of `rating` column does not depend on minutes.
-
-**Alnernative hypothesis**: The missingness of `rating` column does depend on minutes.
-
-**Test Statistics**: The absolute mean difference between two distributions of rating and minutes.
-
-Similarly, we constructed a plot that indicates distributions of minutes with and without the presence of rating below.
-
-<iframe src='graph/fig_minutes.html' width=600 height=600 frameBorder=0></iframe>
-
-We performed a permutaion test by first calculating the observed test statistic - which is the absolute mean difference in `minutes` between the group of recipes with ratings and the group without ratings. We got **51.451** as the observed test statistic. 
-
-We generated 1000 simulation results for each absolute difference by performing permutation testing to shuffle the missingness of rating 1000 times. 
-
-The empirical distribution of the absolute difference in minutes means over 1000 permutations is plotted below; our observed test statistic is indicated by the red line. 
-
-<iframe src='graph/fig_m.html' width=800 height=600 frameBorder=0></iframe>
-
-We calculated the p-value to be approximately **0.109**, which is greater than the significance value we chose, 0.05. Therefore, we **fail to reject the null hypothesis** that the missingness of `rating` column does not depend on minutes. Since we can conclude that the missingness of `rating` **does not** depend on minutes, we can say that the missingness of `rating` is **MCAR** as it doesn't depend on another column or the values themselves.
-
----
-### Hypothesis Testing
-
-The question for Hypothesis testing is: are calories(numbers) and number of ingredients (categories --> lower or higher) correlated? (is there any relationship between them)
-
-We are going to use permutation testing in order to find the relationship between them. For significance value, we are going to use 0.05
-
-For test statistic, we are going to use absolute mean difference
-
-> Setting Up the Testing
-
-As we already mentioned, we already made the columns for categorizing the number of ingredients by categorizing the number of ingredients that is lower than median as True and False for otherwise. 
-
-Therefore, dataframe only with "id", "low_number", and calories looks like this:
-
-         |      id|    low_number|   calories |
-    |---:|-------:|:-------------|-----------:|
-    |  0 | 333281 | False        |      138.4 |
-    |  1 | 453467 | False        |      595.1 |
-    |  2 | 306168 | False        |      194.8 |
-    |  3 | 306168 | False        |      194.8 |
-    |  4 | 306168 | False        |      194.8 |
-
-
-The reason why we chose absolute mean difference is because we have one categorical data with numerical data to compare.
-For comparison, we chose two-sided data as it is a binary testing. H0 = no relationshiop, H1 = There is a relationship.
-
-Also we use log transformation for calories as calories is a highly skewed data with large outliers. It could cause a confusion and mis calculation for permutation testing.
-That is why we used log transformation in order to decrease the effect of skewness.
-
-> Permutation
-We ran permutation test for 10000 times to get the accurate data. 
-The bar graph shows the result of the permutation testing.
-
-<iframe src='graph/fig_permu.html' width=600 height=600 frameBorder=0></iframe>
-
-> Conclusion
-
-The p-value for the testing is 0.00099, which is way smaller than significant level of 0.05. Therfore, we reject the null hypothesis.
-
-This result might be caused by due to the reason with existence of heteroscedasticity, which means that the dispersion of error is not constant. Also, there might be other factor such as kinds of ingredients that they use. For example, french fries only take about 3 different ingredients, but it is considered as a very high calories food.
