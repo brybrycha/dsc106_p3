@@ -31,8 +31,8 @@ function App() {
   const drawChart = () => {
     d3.select(svgRef.current).selectAll('*').remove();
 
-    const margin = { top: 70, right: 0, bottom: 30, left: 50 };
-    const width = 800 - margin.left - margin.right;
+    const margin = { top: 100, right: 40, bottom: 40, left: 50 };
+    const width = 700 - margin.left - margin.right;
     const height = 400 - margin.top - margin.bottom;
 
     const svg = d3.select(svgRef.current)
@@ -41,24 +41,19 @@ function App() {
       .append('g')
       .attr('transform', `translate(${margin.left},${margin.top})`);
 
+    // Add clipping
+    svg.append("defs").append("clipPath")
+      .attr("id", "clip")
+      .append("rect")
+      .attr("width", width)
+      .attr("height", height);
+
     const maxWaitlisted = d3.max(data, d => parseFloat(d.waitlisted));
 
-    const filteredData = data.filter(d => {
-      const normalizedSearchTerm = searchTerm.toLowerCase();
-      const normalizedCourseName = d.name.toLowerCase();
-
-      if (normalizedCourseName.includes(normalizedSearchTerm)) {
-        if (normalizedSearchTerm === "dsc10") {
-          return normalizedCourseName === "dsc10";
-        }
-        return true;
-      }
-      return false;
-    });
 
     const parseTime = d3.timeParse('%Y-%m-%dT%H:%M:%S');
     const xScale = d3.scaleTime()
-      .domain(d3.extent(filteredData, d => parseTime(d.time)))
+      .domain(d3.extent(data, d => parseTime(d.time)))
       .range([0, width]);
 
     const yScale = d3.scaleLinear()
@@ -69,10 +64,13 @@ function App() {
       .x(d => xScale(parseTime(d.time)))
       .y(d => yScale(parseFloat(d.waitlisted)));
 
-    const groupedData = Array.from(d3.group(filteredData, d => d.name), ([key, value]) => ({ key, value }));
+    const groupedData = Array.from(d3.group(data, d => d.name), ([key, value]) => ({ key, value }));
+
+    const lines = svg.append("g")
+      .attr("clip-path", "url(#clip)");
 
     groupedData.forEach(d => {
-      svg.append('path')
+      lines.append('path')
         .datum(d.value)
         .attr('fill', 'none')
         .attr('stroke', colorScale.current(d.key))
@@ -111,23 +109,13 @@ function App() {
       const newXScale = transform.rescaleX(xScale);
       const newYScale = transform.rescaleY(yScale);
 
-      svg.selectAll('.line')
+      lines.selectAll('.line')
         .attr('d', d => line(d))
         .attr('transform', transform);
 
       svg.select('.x-axis').call(d3.axisBottom(newXScale));
       svg.select('.y-axis').call(d3.axisLeft(newYScale));
     }
-
-    // Zoom in button
-    d3.select("#zoomInButton").on("click", () => {
-      svg.transition().call(zoom.scaleBy, 2);
-    });
-
-    // Zoom out button
-    d3.select("#zoomOutButton").on("click", () => {
-      svg.transition().call(zoom.scaleBy, 0.5);
-    });
   };
 
   const drawLegend = () => {
@@ -175,8 +163,6 @@ function App() {
       </div>
       <svg ref={svgRef}></svg>
       <svg ref={legendRef} className="legend"></svg>
-      <button id="zoomInButton">Zoom In</button>
-      <button id="zoomOutButton">Zoom Out</button>
     </div>
   );
 }
