@@ -10,12 +10,12 @@ function App() {
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
-    d3.csv('https://raw.githubusercontent.com/brybrycha/dsc106_p3/main/p3/public/CSVs/dsc_course_final.csv').then(data => {
+    d3.csv('https://raw.githubusercontent.com/brybrycha/dsc106_p3/main/p3/public/CSVs/dsc_course.csv').then(data => {
       console.log(data);
       setData(data);
 
       const allCourses = Array.from(new Set(data.map(d => d.name)));
-      colorScale.current = d3.scaleOrdinal()  // **Reinitialize color scale with specific domain**
+      colorScale.current = d3.scaleOrdinal()
         .domain(allCourses)
         .range(d3.schemeCategory10);
     });
@@ -31,7 +31,7 @@ function App() {
   const drawChart = () => {
     d3.select(svgRef.current).selectAll('*').remove();
 
-    const margin = { top: 30, right: 50, bottom: 30, left: 20 };
+    const margin = { top: 70, right: 0, bottom: 30, left: 50 };
     const width = 800 - margin.left - margin.right;
     const height = 400 - margin.top - margin.bottom;
 
@@ -40,6 +40,8 @@ function App() {
       .attr('height', height + margin.top + margin.bottom)
       .append('g')
       .attr('transform', `translate(${margin.left},${margin.top})`);
+
+    const maxWaitlisted = d3.max(data, d => parseFloat(d.waitlisted));
 
     const filteredData = data.filter(d => {
       const normalizedSearchTerm = searchTerm.toLowerCase();
@@ -54,14 +56,13 @@ function App() {
       return false;
     });
       
-
     const parseTime = d3.timeParse('%Y-%m-%dT%H:%M:%S');
     const xScale = d3.scaleTime()
       .domain(d3.extent(filteredData, d => parseTime(d.time)))
       .range([0, width]);
 
     const yScale = d3.scaleLinear()
-      .domain([0, d3.max(filteredData, d => parseFloat(d.waitlisted))])
+      .domain([0, maxWaitlisted])
       .range([height, 0]);
 
     const line = d3.line()
@@ -83,14 +84,15 @@ function App() {
         .duration(750);
     });
 
+    svg.select('.y-axis').remove();
+    svg.append('g')
+      .attr('class', 'y-axis')
+      .call(d3.axisLeft(yScale));
+
     svg.append('g')
       .attr('class', 'x-axis')
       .attr('transform', `translate(0,${height})`)
       .call(d3.axisBottom(xScale));
-
-    svg.append('g')
-      .attr('class', 'y-axis')
-      .call(d3.axisLeft(yScale));
 
     const zoom = d3.zoom()
       .scaleExtent([1, 10])
@@ -106,9 +108,8 @@ function App() {
       svg.select('.x-axis').call(d3.axisBottom(new_xScale));
       svg.selectAll('path').attr('transform', event.transform);
     }
+};
 
-
-  };
 
 
   const drawLegend = () => {
@@ -148,7 +149,7 @@ function App() {
           <i className="search-icon">&#x1F50D;</i> {/* Unicode for a magnifying glass icon */}
           <input
             type = "text"
-            className="search-box" // Apply the CSS class
+            className="search-box"
             placeholder = "Enter course name..."  
             value = {searchTerm}
             onChange = {e => setSearchTerm(e.target.value)}
