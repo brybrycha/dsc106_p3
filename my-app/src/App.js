@@ -6,7 +6,7 @@ function App() {
   const [data, setData] = useState([]);
   const svgRef = useRef();
   const legendRef = useRef();
-  const colorScale = useRef(d3.scaleOrdinal(d3.schemeCategory10)); 
+  const colorScale = useRef(d3.scaleOrdinal(d3.schemeCategory10));
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
@@ -46,7 +46,7 @@ function App() {
     const filteredData = data.filter(d => {
       const normalizedSearchTerm = searchTerm.toLowerCase();
       const normalizedCourseName = d.name.toLowerCase();
-    
+
       if (normalizedCourseName.includes(normalizedSearchTerm)) {
         if (normalizedSearchTerm === "dsc10") {
           return normalizedCourseName === "dsc10";
@@ -55,7 +55,7 @@ function App() {
       }
       return false;
     });
-      
+
     const parseTime = d3.timeParse('%Y-%m-%dT%H:%M:%S');
     const xScale = d3.scaleTime()
       .domain(d3.extent(filteredData, d => parseTime(d.time)))
@@ -71,8 +71,6 @@ function App() {
 
     const groupedData = Array.from(d3.group(filteredData, d => d.name), ([key, value]) => ({ key, value }));
 
-    const color = colorScale;
-
     groupedData.forEach(d => {
       svg.append('path')
         .datum(d.value)
@@ -80,6 +78,7 @@ function App() {
         .attr('stroke', colorScale.current(d.key))
         .attr('stroke-width', 2)
         .attr('d', line)
+        .attr('class', 'line')
         .transition()
         .duration(750);
     });
@@ -100,17 +99,36 @@ function App() {
       .extent([[0, 0], [width, height]])
       .on('zoom', zoomed);
 
-    svg.call(zoom)
-      .on('wheel', zoomed);
+    svg.append('rect')
+      .attr('width', width)
+      .attr('height', height)
+      .style('fill', 'none')
+      .style('pointer-events', 'all')
+      .call(zoom);
 
     function zoomed(event) {
-      const new_xScale = event.transform.rescaleX(xScale);
-      svg.select('.x-axis').call(d3.axisBottom(new_xScale));
-      svg.selectAll('path').attr('transform', event.transform);
+      const { transform } = event;
+      const newXScale = transform.rescaleX(xScale);
+      const newYScale = transform.rescaleY(yScale);
+
+      svg.selectAll('.line')
+        .attr('d', d => line(d))
+        .attr('transform', transform);
+
+      svg.select('.x-axis').call(d3.axisBottom(newXScale));
+      svg.select('.y-axis').call(d3.axisLeft(newYScale));
     }
-};
 
+    // Zoom in button
+    d3.select("#zoomInButton").on("click", () => {
+      svg.transition().call(zoom.scaleBy, 2);
+    });
 
+    // Zoom out button
+    d3.select("#zoomOutButton").on("click", () => {
+      svg.transition().call(zoom.scaleBy, 0.5);
+    });
+  };
 
   const drawLegend = () => {
     const legend = d3.select(legendRef.current);
@@ -145,18 +163,20 @@ function App() {
 
   return (
     <div className="App">
-       <div className="search-container">
-          <i className="search-icon">&#x1F50D;</i> {/* Unicode for a magnifying glass icon */}
-          <input
-            type = "text"
-            className="search-box"
-            placeholder = "Enter course name..."  
-            value = {searchTerm}
-            onChange = {e => setSearchTerm(e.target.value)}
-          />
-        </div>
+      <div className="search-container">
+        <i className="search-icon">&#x1F50D;</i> {/* Unicode for a magnifying glass icon */}
+        <input
+          type="text"
+          className="search-box"
+          placeholder="Enter course name..."
+          value={searchTerm}
+          onChange={e => setSearchTerm(e.target.value)}
+        />
+      </div>
       <svg ref={svgRef}></svg>
       <svg ref={legendRef} className="legend"></svg>
+      <button id="zoomInButton">Zoom In</button>
+      <button id="zoomOutButton">Zoom Out</button>
     </div>
   );
 }
