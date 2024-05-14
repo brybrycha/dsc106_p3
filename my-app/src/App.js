@@ -10,7 +10,7 @@ function App() {
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
-    d3.csv('https://raw.githubusercontent.com/brybrycha/dsc106_p3/main/my-app/public/dsc_course.csv').then(data => {
+    d3.csv('https://raw.githubusercontent.com/brybrycha/dsc106_p3/main/p3/public/CSVs/dsc_course_final.csv').then(data => {
       console.log(data);
       setData(data);
 
